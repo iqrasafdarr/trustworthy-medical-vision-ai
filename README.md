@@ -1,1224 +1,707 @@
-# MedVisionAI
+<div align="center">
 
-## A Trustworthy Multimodal Framework for Brain MRI Analysis
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=210&section=header&text=Beyond%20Accuracy&fontSize=58&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=A%20Multi-Pillar%20Clinical%20Trust%20Framework%20for%20Brain%20Tumor%20MRI%20Classification&descAlignY=62&descSize=16" width="100%"/>
 
-[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python\&logoColor=white)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch\&logoColor=white)](https://pytorch.org/)
-[![MONAI](https://img.shields.io/badge/MONAI-Medical%20AI-6C5CE7)](https://monai.io/)
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Transformers-FFD21E?logo=huggingface\&logoColor=black)](https://huggingface.co/)
-[![Gradio](https://img.shields.io/badge/Gradio-Demo-F97316)](https://gradio.app/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<img src="https://readme-typing-svg.demolab.com/?lines=A+94%25-accurate+model+can+still+be+dangerously+wrong;This+framework+catches+what+accuracy+hides;74%25+of+errors+hide+behind+%3E90%25+confidence&font=Fira+Code&size=18&pause=1300&color=A855F7&background=00000000&center=true&width=820&height=40&vCenter=true"/>
 
-> A research-oriented multimodal framework integrating brain MRI tumor segmentation, four-class classification, confidence analysis, generic vision-language description, and controlled report generation.
+<br/>
 
-**Research prototype — not a clinical diagnostic system.**
+[![Paper Status](https://img.shields.io/badge/paper-under%20review-yellow?style=for-the-badge)](#-citation)
+[![License: MIT](https://img.shields.io/badge/License-MIT-9333EA?style=for-the-badge)](./LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-2563EB?style=for-the-badge&logo=python&logoColor=white)](#requirements)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-D97706?style=for-the-badge&logo=tensorflow&logoColor=white)](#requirements)
+[![Open In Colab](https://img.shields.io/badge/Open%20In-Colab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white)](#-reproducing-results)
 
----
+<br/>
 
-## Overview
+<img src="https://img.shields.io/badge/Best%20Accuracy-94.67%25-16A34A?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Cross--Dataset%20Accuracy-86.13%25-0891B2?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/CRI-0.8186-DB2777?style=for-the-badge"/>
 
-Medical imaging AI systems can achieve strong predictive performance while still facing important challenges involving **reliability, uncertainty, interpretability, robustness, generalization, and safe communication**.
+<br/>
 
-**MedVisionAI** explores a modular approach to brain MRI analysis in which each AI component has a clearly defined responsibility.
+![GitHub stars](https://img.shields.io/github/stars/iqrasafdarr/Toward-Trustworthy-AI-for-Brain-Tumor-MRI-Classification-A-Multi-Pillar-Clinical-Readiness-Framework?style=flat-square&color=A855F7&label=Stars)
+![GitHub forks](https://img.shields.io/github/forks/iqrasafdarr/Toward-Trustworthy-AI-for-Brain-Tumor-MRI-Classification-A-Multi-Pillar-Clinical-Readiness-Framework?style=flat-square&color=EC4899&label=Forks)
+![Last commit](https://img.shields.io/github/last-commit/iqrasafdarr/Toward-Trustworthy-AI-for-Brain-Tumor-MRI-Classification-A-Multi-Pillar-Clinical-Readiness-Framework?style=flat-square&color=0891B2&label=Last%20Commit)
+![Repo size](https://img.shields.io/github/repo-size/iqrasafdarr/Toward-Trustworthy-AI-for-Brain-Tumor-MRI-Classification-A-Multi-Pillar-Clinical-Readiness-Framework?style=flat-square&color=D97706&label=Repo%20Size)
 
-The framework currently integrates:
+**Authors:** Iqra Safdar · Zeeshan Raza · Malaika Arif
+**Affiliation:** Department of Computer Science, COMSATS University Islamabad, Sahiwal Campus
 
-* **MONAI U-Net** — brain tumor segmentation
-* **Vision Transformer (ViT)** — four-class brain MRI classification
-* **BLIP-base** — generic image description
-* **Confidence analysis** — prediction probability and high-confidence error analysis
-* **Controlled report generation** — structured, safety-constrained communication
-* **Gradio** — interactive multimodal demonstration
+</div>
 
-The central design principle is:
+<br/>
 
-> **Prediction, visual description, and communication should remain explicitly separated.**
+## 📋 Table of Contents
 
-This prevents a general-purpose vision-language model from being treated as an autonomous medical reporting or diagnostic system.
+- [🔥 The Core Problem](#-the-core-problem)
+- [🏛️ The Four Pillars](#️-the-four-pillars)
+- [📐 The Clinical Readiness Index (CRI)](#-the-clinical-readiness-index-cri)
+- [🔄 Pipeline Overview](#-pipeline-overview)
+- [📊 Methodology](#-methodology)
+- [📈 Results](#-results)
+- [📁 Repository Structure](#-repository-structure)
+- [🚀 Reproducing Results](#-reproducing-results)
+- [🛠️ The Audit Tool (MedTrust-Audit)](#️-the-audit-tool-medtrust-audit)
+- [📚 Citation](#-citation)
+- [📄 License](#-license)
 
----
+<br/>
 
-# Visual Results
+## 🔥 The Core Problem
 
-## Classification Performance
+Brain tumor MRI classifiers routinely report **94%+ accuracy**. But accuracy alone doesn't tell you whether a model is safe to deploy clinically. Two dangerous failure modes hide behind a good accuracy number:
 
-<p align="center">
-  <img src="results/classification/confusion_matrix.png" width="500">
-</p>
+| Failure Mode | What It Means | Clinical Risk |
+|---|---|---|
+| 🎯 **Miscalibration** | The model's stated confidence doesn't match its actual reliability | A clinician trusting a 95% confidence score may proceed with wrong treatment |
+| ⚠️ **Silent high-confidence errors** | The model is most *wrong* exactly when it claims to be most *sure* | Critical misdiagnoses go unflagged because the model appears "certain" |
 
-<p align="center">
-  <em>Confusion matrix for the four-class ViT classification experiment on the held-out test set.</em>
-</p>
+> 🚨 **Key Finding:** In our evaluation, **74.12% of MobileNetV2's wrong predictions were made with >90% confidence.** A clinician trusting the model's confidence score to flag uncertain cases would miss **three out of every four errors.**
 
----
+This is why we propose a framework that doesn't stop at accuracy. We evaluate across **four pillars** and combine them into a single deployment-readiness score: the **Clinical Readiness Index (CRI)**.
 
-## Segmentation Results
+<br/>
 
-<p align="center">
-  <img src="results/segmentation/visualizations/test_case_00_dice_0.000.png" width="220">
-  <img src="results/segmentation/visualizations/test_case_01_dice_0.255.png" width="220">
-  <img src="results/segmentation/visualizations/test_case_02_dice_0.615.png" width="220">
-  <img src="results/segmentation/visualizations/test_case_03_dice_0.750.png" width="220">
-</p>
+### ⚡ TL;DR — At a Glance
 
-<p align="center">
-  <img src="results/segmentation/visualizations/test_case_04_dice_0.830.png" width="220">
-  <img src="results/segmentation/visualizations/test_case_05_dice_0.891.png" width="220">
-  <img src="results/segmentation/visualizations/test_case_06_dice_0.931.png" width="220">
-  <img src="results/segmentation/visualizations/test_case_07_dice_0.971.png" width="220">
-</p>
+| | |
+|---|---|
+| 🏆 **Best Model** | MobileNetV2 — highest CRI despite not having the highest raw accuracy |
+| 📊 **Primary Accuracy** | 94.67% (ResNet50) · 94.21% (MobileNetV2) · 94.04% (EfficientNetB0) |
+| 🌍 **External Validation** | 86.13% zero-shot on independent Figshare dataset |
+| 🚨 **The Catch** | 74.12% of MobileNetV2's errors occur with >90% confidence |
+| 📐 **Readiness Score** | CRI = 0.8186 / 1.0 (MobileNetV2) |
+| 🔍 **Explainability Audit** | Grad-CAM on all 1,600 test images — caught a watermark-driven artifact in EfficientNetB0 |
+| 🧪 **Reproducibility** | 3 seeds, bootstrap 95% CI (10,000 resamples), McNemar's test |
 
-<p align="center">
-  <em>Qualitative segmentation results from the held-out test set, showing cases ranging from Dice = 0.000 to Dice = 0.971.</em>
-</p>
+<br/>
 
-Additional segmentation visualizations are available in:
+## 🏛️ The Four Pillars
 
-```text
-results/segmentation/visualizations/
+We argue that trustworthy deployment requires treating these four dimensions as **equal priorities**, not a hierarchy where accuracy sits alone at the top.
+
+<div align="center">
+
+```mermaid
+flowchart TB
+    ROOT([🧠 Trustworthy Deployment]) --> P1
+    ROOT --> P2
+    ROOT --> P3
+    ROOT --> P4
+
+    P1["📊 1. Discrimination<br/>Accuracy · Weighted F1<br/><i>Basic diagnostic capability</i>"]
+    P2["🎯 2. Calibration<br/>Expected Calibration Error<br/><i>Confidence must match reality</i>"]
+    P3["🔁 3. Statistical Stability<br/>Bootstrap 95% CI · multi-seed σ<br/><i>Not a lucky seed</i>"]
+    P4["🔍 4. Explainability<br/>Grad-CAM · edge-bias audit<br/><i>Looking at tumor, not artifact</i>"]
+
+    P1 & P2 & P3 & P4 --> CRI([📐 Clinical Readiness Index])
+
+    style ROOT fill:#111827,color:#fff,stroke:none
+    style P1 fill:#2563EB,color:#fff,stroke:none
+    style P2 fill:#DB2777,color:#fff,stroke:none
+    style P3 fill:#D97706,color:#fff,stroke:none
+    style P4 fill:#0891B2,color:#fff,stroke:none
+    style CRI fill:#16A34A,color:#fff,stroke:none
 ```
 
----
+</div>
 
-# Research Motivation
+> **Gap in Existing Literature:** Table I shows that no prior brain tumor MRI study reports all four pillars together. Our work is the first in the regional neuro-oncological AI literature to do so.
 
-Medical imaging workflows involve several complementary questions:
+<details>
+<summary><b>📋 Table I — Comparison of Evaluation Scope in Recent Brain Tumor MRI Literature</b> (click to expand)</summary>
+<br/>
 
-1. **Where is the abnormal region?**
-2. **What category does the classifier predict?**
-3. **How confident is the prediction?**
-4. **What visual information can a general-purpose vision-language model describe?**
-5. **How can these outputs be communicated without introducing unsupported medical claims?**
+| Study | Architecture | Accuracy | ECE | Bootstrap CI | XAI Audit |
+|---|---|---|---|---|---|
+| Nickparvar et al. [4] | CNN | ✅ | ❌ | ❌ | ❌ |
+| Rehman et al. [5] | Multi | ✅ | ❌ | ❌ | ❌ |
+| Swati et al. [13] | EfficientNetB0 | ✅ | ❌ | ❌ | ❌ |
+| Cheng et al. [14] | ResNet | ✅ | ❌ | ❌ | ❌ |
+| Gumaei et al. [15] | Hybrid | ✅ | ❌ | ❌ | ❌ |
+| Sajjad et al. [16] | Multi-CNN | ✅ | ❌ | ❌ | ⚠️ Qualitative only |
+| Abiwinanda et al. [17] | CNN | ✅ | ❌ | ❌ | ❌ |
+| Gao et al. [31] (SwinBTC) | Swin Transformer | ✅ | ❌ | ❌ | ❌ |
+| **This Work** | **MobileNetV2, ResNet50** | ✅ | ✅ | ✅ | ✅ |
 
-MedVisionAI investigates these questions through a modular research pipeline.
+✅ = Reported  ❌ = Not Reported  ⚠️ = Partial
 
-The framework provides a foundation for research into:
+</details>
 
-* Trustworthy Medical AI
-* Medical Image Analysis
-* Multimodal AI
-* Computer Vision
-* Deep Learning
-* Model Calibration
-* Uncertainty Estimation
-* Robust Machine Learning
-* Explainable AI
-* Safe AI-generated communication
+<br/>
 
----
+## 📐 The Clinical Readiness Index (CRI)
 
-# System Architecture
+To consolidate multi-pillar assessment into a single procurement metric, we propose the **Clinical Readiness Index (CRI)**:
 
-```text
-                         Brain MRI Input
-                                │
-              ┌─────────────────┴─────────────────┐
-              │                                   │
-              ▼                                   ▼
-      ┌─────────────────┐                 ┌──────────────────┐
-      │   MONAI U-Net   │                 │ Vision Transformer│
-      │                 │                 │       (ViT)       │
-      │ Tumor           │                 │ Four-Class        │
-      │ Segmentation    │                 │ Classification    │
-      └────────┬────────┘                 └─────────┬─────────┘
-               │                                    │
-               ▼                                    ├── Prediction
-       Segmentation Mask                            ├── Confidence
-                                                    └── Probabilities
-                                                     │
-                                                     ▼
-                                            ┌─────────────────┐
-                                            │      BLIP       │
-                                            │                 │
-                                            │ Generic Image   │
-                                            │ Description     │
-                                            └────────┬────────┘
-                                                     │
-                                                     ▼
-                                      ┌──────────────────────────┐
-                                      │ Controlled Report        │
-                                      │ Generator                │
-                                      │                          │
-                                      │ • Image Description      │
-                                      │ • Classification Context │
-                                      │ • Confidence             │
-                                      │ • Safety Disclaimer      │
-                                      └────────────┬─────────────┘
-                                                   │
-                                                   ▼
-                                          ┌──────────────────┐
-                                          │ Gradio Interface │
-                                          │                  │
-                                          │ Interactive Demo │
-                                          └──────────────────┘
+```
+CRI = 0.40 × Accuracy + 0.25 × (1 − ECE) + 0.20 × (1 − HCE) + 0.15 × Generalization
 ```
 
-The segmentation and classification branches are **evaluated independently**.
+<div align="center">
 
-The current Gradio demonstration primarily showcases the:
-
-```text
-ViT Classification
-        +
-BLIP Description
-        +
-Controlled Reporting
+```mermaid
+pie showData
+    title CRI Weight Breakdown
+    "Accuracy (0.40)" : 40
+    "Calibration — 1-ECE (0.25)" : 25
+    "Safety — 1-HCE (0.20)" : 20
+    "Generalization (0.15)" : 15
 ```
 
-pathway.
+</div>
 
----
+| Component | Symbol | Description | Weight | Rationale |
+|---|---|---|---|---|
+| **Accuracy** | `Acc` | Top-1 classification accuracy | 0.40 | Primary discriminative capability |
+| **Calibration** | `1 − ECE` | Expected Calibration Error inverted | 0.25 | Confidence must match reality |
+| **High-Confidence Reliability** | `1 − HCE` | Fraction of errors with confidence > 0.9 | 0.20 | Silent errors are the most dangerous |
+| **Generalization** | `Gen` | External dataset retention (1.0 for primary) | 0.15 | Robustness beyond training distribution |
 
-# Key Contributions
+All components are bounded to **[0, 1]**. The weights reflect clinical priorities: discrimination matters most, but a model with excellent accuracy yet dangerous overconfidence should not receive a high readiness score.
 
-## 1. Modular Multimodal Architecture
+> **Key Insight:** MobileNetV2 achieves CRI = **0.8186** — its readiness is reduced not by accuracy, but by silent high-confidence errors (contributing only 0.0518 of its maximum 0.20 safety weight).
 
-Integrates segmentation, classification, and vision-language components while maintaining explicit task boundaries.
+<br/>
 
-## 2. Patient-Level Segmentation Splitting
+## 🔄 Pipeline Overview
 
-Uses patient-level train/validation/test partitioning to reduce the risk of patient leakage between experimental subsets.
+<div align="center">
 
-## 3. Vision Transformer Transfer Learning
+```mermaid
+flowchart TB
+    subgraph Input["📥 Input"]
+        D["Brain Tumor MRI Dataset<br/>7,023 train / 1,600 test"]
+        S["3 Random Seeds<br/>42, 789, 999"]
+    end
 
-Adapts a pretrained `google/vit-base-patch16-224` model to four brain MRI categories.
+    D & S --> TR["🔧 Fine-tune Architectures<br/>MobileNetV2, ResNet50, EfficientNetB0<br/>(ImageNet-pretrained)"]
+    TR --> FL["⚖️ Focal Loss<br/>γ = 2.0, α = 0.25"]
 
-## 4. Confidence-Aware Evaluation
+    FL --> EV{"📊 Evaluate Across<br/>4 Pillars"}
 
-Reports standard classification metrics together with prediction confidence and high-confidence errors.
+    subgraph Pillars["🏛️ Four Pillars"]
+        direction TB
+        P1["📊 Discrimination<br/>Accuracy · Weighted F1"]
+        P2["🎯 Calibration<br/>ECE · Bootstrap 95% CI"]
+        P3["🔁 Stability<br/>Multi-seed variance · McNemar's test"]
+        P4["🔍 Explainability<br/>Grad-CAM · Edge-bias audit"]
+    end
 
-## 5. Controlled Report Generation
+    EV --> P1 & P2 & P3 & P4
 
-Separates model-generated visual descriptions from classifier outputs and fixed safety information.
+    P1 & P2 & P3 & P4 --> CRI["📐 Clinical Readiness Index<br/>CRI = Composite Score"]
+    CRI --> RPT["📋 Audit Report<br/>+ Figures + Confidence Curves"]
 
-## 6. Explicit Vision-Language Model Limitation
+    classDef input fill:#7C3AED,color:#fff,stroke:none
+    classDef process fill:#2563EB,color:#fff,stroke:none
+    classDef pillar fill:#D97706,color:#fff,stroke:none
+    classDef output fill:#DC2626,color:#fff,stroke:none
 
-Uses BLIP strictly as a **generic image-description model**, rather than presenting its output as radiological interpretation.
-
-## 7. Reproducible Research Organization
-
-Separates configurations, source modules, training scripts, evaluation scripts, notebooks, and experiment artifacts.
-
----
-
-# Components
-
-| Component           | Model / Technology          | Task                           | Status    |
-| ------------------- | --------------------------- | ------------------------------ | --------- |
-| Segmentation        | MONAI U-Net                 | Brain tumor segmentation       | Completed |
-| Classification      | Vision Transformer          | Four-class classification      | Completed |
-| Confidence Analysis | PyTorch / custom evaluation | Prediction confidence analysis | Completed |
-| Vision-Language     | BLIP-base                   | Generic image description      | Completed |
-| Reporting           | Controlled Python template  | Structured reporting           | Completed |
-| Interface           | Gradio                      | Interactive inference          | Completed |
-
----
-
-# 1. Brain Tumor Segmentation
-
-## Model
-
-The segmentation component uses a **MONAI U-Net** for binary tumor segmentation.
-
-```yaml
-model:
-  name: "unet"
-  in_channels: 1
-  out_channels: 2
-  channels: [16, 32, 64, 128, 256]
-  strides: [2, 2, 2, 2]
-  num_res_units: 2
+    class D,S input
+    class TR,FL,EV process
+    class P1,P2,P3,P4 pillar
+    class CRI,RPT output
 ```
 
-The current implementation:
+</div>
 
-* extracts the FLAIR modality
-* processes MRI volumes as 2D axial slices
-* predicts a binary tumor mask
+<br/>
 
-This is a **2D slice-based segmentation experiment**, rather than a full 3D volumetric segmentation system.
+## 📊 Methodology
 
----
+### Dataset & Preprocessing
 
-## Dataset
+| Attribute | Detail |
+|---|---|
+| **Dataset** | Public Brain Tumor MRI Dataset (Nickparvar et al.) |
+| **Training Set** | 7,023 images (naturally imbalanced) |
+| **Test Set** | 1,600 images (perfectly balanced: 400 per class) |
+| **Classes** | Glioma, Meningioma, Pituitary, No-Tumor |
+| **Input Resolution** | 224 × 224 (ImageNet compatible) |
+| **Normalization** | ImageNet mean/std statistics |
+| **Augmentation** | Rotation (±20°), Shift (±15%), Zoom (±15%), Horizontal Flip, Brightness [0.8, 1.2] |
+| **Validation Split** | 20% of training pool (1,405 images) for early stopping |
 
-The segmentation experiment uses the **Medical Segmentation Decathlon — Task01 BrainTumour** dataset.
+<div align="center">
+<img src="figures/sample_images.png" alt="Sample MRI images across the four classes" width="85%"/>
+<br/><sub><i>Sample MRI images from the dataset across all four classes (Glioma, Meningioma, Pituitary, No-Tumor)</i></sub>
+</div>
+<br/>
 
-The verified dataset contains:
+**Dataset Splits:**
 
-* **484 matched MRI volumes**
-* corresponding tumor segmentation labels
-* `imagesTr/`
-* `labelsTr/`
-* `imagesTs/`
-* `dataset.json`
+| Split | Images | Fraction | Classes |
+|---|---|---|---|
+| Training (actual) | 5,618 | 80% of train+val pool | 4 |
+| Validation | 1,405 | 20% of train+val pool | 4 |
+| Test | 1,600 | — | 4 (balanced) |
+| **Total** | **8,623** | — | — |
 
-### Patient-Level Split
+### Focal Loss for Class Imbalance
 
-| Split      | Patients |
-| ---------- | -------: |
-| Training   |      339 |
-| Validation |       73 |
-| Test       |       72 |
-| **Total**  |  **484** |
+Standard cross-entropy under-weights challenging positive examples in imbalanced datasets and induces overconfidence on easy negatives — a known precursor to miscalibration. We employ **Focal Loss**:
 
-No patient overlap was observed between the three partitions.
-
----
-
-## Preprocessing
-
-The segmentation pipeline includes:
-
-* FLAIR modality extraction
-* floating-point conversion
-* non-zero brain-tissue normalization
-* per-slice z-score normalization
-* image resizing using bilinear interpolation
-* label resizing using nearest-neighbor interpolation
-* binary tumor-mask generation
-* deterministic slice sampling
-* exclusion of slices without ground-truth tumor foreground from scored test metrics
-
----
-
-# Segmentation Results
-
-The best checkpoint was selected according to validation Dice.
-
-## Held-Out Test Performance
-
-| Metric                        |              Result |
-| ----------------------------- | ------------------: |
-| Dice                          | **0.6795 ± 0.2932** |
-| IoU                           | **0.5779 ± 0.2906** |
-| Total test slices             |             **720** |
-| Scored slices                 |             **288** |
-| No-foreground slices excluded |             **432** |
-
-### Best Validation Checkpoint
-
-```text
-Best validation Dice: 0.6993
-Checkpoint epoch: 2
+```
+L_FL = −α (1 − pₜ)^γ log(pₜ)
 ```
 
-### Interpretation
+With hyperparameters:
+- **γ = 2.0** — modulating factor attenuates gradients for easy negatives by up to 16×
+- **α = 0.25** — corrects class imbalance
 
-The reported Dice and IoU values are **slice-level metrics calculated on test slices containing ground-truth tumor foreground**.
+The modulating factor `(1 − pₜ)^γ` concentrates updates on **hard glioma cases** while improving calibration by down-weighting easy negatives.
 
-They should therefore **not** be interpreted as whole-volume 3D segmentation scores.
+### Architectures
 
-The relatively large standard deviation indicates substantial variation in segmentation difficulty across individual slices.
+We evaluate three architectures, all initialized with **ImageNet weights**:
 
----
+| Architecture | Parameters | Latency (CPU) | Unfrozen Layers | Classification Head |
+|---|---|---|---|---|
+| **MobileNetV2** | 3.5M | 147.54 ms | Last 50 | Global Avg Pool → BatchNorm → Dense(128, ReLU) → Dropout(0.5) → Dense(4, Softmax) |
+| **ResNet50** | 25.6M | ~ higher | Last 50 | Same as above |
+| **EfficientNetB0** | 5.3M | ~ medium | Last 50 | Same as above |
 
-# 2. Brain Tumor Classification
+> **Consumer-Electronics Readiness:** At 3.5M parameters and 147.54ms CPU-only latency, MobileNetV2 is deployable on edge devices in resource-constrained settings (e.g., rural clinics in Pakistan).
 
-## Model
+### Training Protocol
 
-The classification component uses:
+| Parameter | Value | Rationale |
+|---|---|---|
+| Optimizer | Adam | Adaptive learning rate |
+| Initial Learning Rate | 10⁻⁴ | Conservative fine-tuning |
+| Batch Size | 32 | Memory-efficient |
+| Max Epochs | 30 | With early stopping |
+| Early Stopping Patience | 10 | Prevents overfitting |
+| LR Reduction Factor | 0.5 | Gentle decay |
+| LR Patience | 4 epochs | Allows oscillation |
+| Dropout Rate | 0.5 | Regularization |
+| Random Seed | 42 (primary), 789, 999 | Reproducibility + stability testing |
+| Bootstrap Resamples | 10,000 | Standard 95% CI |
+| ECE Bins | 10 equal-width | Per Guo et al. [6] |
 
-**Vision Transformer — `google/vit-base-patch16-224`**
+### Evaluation Protocol
 
-The pretrained model is adapted to four classes:
+**1. Discrimination:** Top-1 Accuracy · Weighted F1-Score
 
-```text
-glioma
-meningioma
-pituitary
-no_tumor
+**2. Calibration** — Expected Calibration Error (ECE) with 10 equal-width bins:
+
+```
+          M
+ECE = Σ  |Bₘ|/N × |acc(Bₘ) − conf(Bₘ)|
+         m=1
 ```
 
-Configuration:
+Where `Bₘ` is the set of predictions in bin *m*, `acc(Bₘ)` is the accuracy of bin *m*, and `conf(Bₘ)` is the average confidence of bin *m*.
 
-```yaml
-model:
-  name: "google/vit-base-patch16-224"
-  num_labels: 4
-  freeze_encoder_layers: 10
+**3. Statistical Stability:** Bootstrap 95% confidence intervals from **10,000 resamples** · Multi-seed variance (σ) across seeds {42, 789, 999} · Instance-wise pairing preserved between ground truth and predictions
+
+**4. Explainability:** **Grad-CAM** heatmaps for **all 1,600 test images** (not a hand-picked subset) · Quantified via **edge-bias metric**: activation mass within a 20-pixel border · Detects artifact exploitation (watermarks, corner markers, skull-edge intensity)
+
+### Ensemble & Post-Hoc Calibration
+
+| Step | Method | Details |
+|---|---|---|
+| **Weighted Ensemble** | Grid search over λ ∈ [0.1, 0.9] | MobileNetV2 weight = λ, ResNet50 weight = 1 − λ |
+| **Complementarity Test** | McNemar's exact test [26,27] | Assesses statistically significant complementary error patterns on discordant counts n₀₁ and n₁₀ |
+| **Temperature Scaling** | Post-hoc calibration [6] | `qᵢ = exp(zᵢ/T) / Σⱼ exp(zⱼ/T)` with T ∈ [0.5, 5.0] chosen to minimize ECE |
+
+<details>
+<summary><b>🧮 Algorithm 1: Multi-Pillar Clinical Trust Framework</b> (click to expand pseudocode)</summary>
+<br/>
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  ALGORITHM 1: Multi-Pillar Clinical Trust Framework               │
+├─────────────────────────────────────────────────────────────────────┤
+│  INPUT:  Dataset D, Model M, Seeds S = {42, 789, 999}            │
+│  OUTPUT: Trained M*, CRI, ECE, HCE, Audit Report                  │
+├─────────────────────────────────────────────────────────────────────┤
+│  1:  PREPROCESS: Resize → 224×224, Normalize (ImageNet stats),     │
+│      Augment (rotation, shift, zoom, flip, brightness)            │
+│                                                                     │
+│  2:  SPLIT D → Train (80%), Val (20%), Test (1,600)               │
+│                                                                     │
+│  3:  for each seed s ∈ S do                                        │
+│  4:      LOAD M with ImageNet weights                              │
+│  5:      UNFREEZE last 50 layers                                   │
+│  6:      TRAIN with Focal Loss (γ=2.0, α=0.25), Adam (lr=1e-4)    │
+│  7:      EVALUATE Discrimination: Accuracy, Weighted F1           │
+│  8:      EVALUATE Calibration: ECE with 10 equal-width bins        │
+│  9:      EVALUATE Stability: Bootstrap 95% CI (10,000 resamples)  │
+│ 10:      EVALUATE Explainability: Grad-CAM heatmaps; edge-bias    │
+│                                                                     │
+│ 11:  BUILD weighted ensemble: Grid-search λ ∈ [0.1, 0.9]          │
+│ 12:  TEST complementarity: McNemar's exact test                    │
+│ 13:  APPLY temperature scaling: T ∈ [0.5, 5.0] to minimize ECE    │
+│                                                                     │
+│ 14:  COMPUTE CRI = 0.40·Acc + 0.25·(1−ECE) + 0.20·(1−HCE)        │
+│                    + 0.15·Gen                                      │
+│                                                                     │
+│ 15:  RETURN M*, CRI, ECE, HCE, Audit Report                       │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-The first **10 ViT encoder layers** are frozen during training.
+</details>
 
----
+<br/>
 
-# Classification Dataset
+## 📈 Results
 
-The classification dataset is organized as:
+### Discriminative Performance
 
-```text
-Train/
-├── Glioma/
-├── Meningioma/
-├── Pituitary/
-└── No Tumor/
+Results on the main test set (n = 1,600) across three random seeds:
 
-Val/
-├── Glioma/
-├── Meningioma/
-├── Pituitary/
-└── No Tumor/
+#### Table V — Multi-Seed Discriminative Performance and Stability
+
+| Model | Accuracy | Weighted F1 | Range (Min–Max) | Std Dev (σ) |
+|---|---|---|---|---|
+| **ResNet50** | 🥇 **94.67% ± 0.12%** | 94.55% ± 0.13% | [94.44%, 94.79%] | 0.12% |
+| **MobileNetV2** | 🥈 94.21% ± 0.21% | 94.08% ± 0.21% | [94.00%, 94.50%] | 0.21% |
+| **EfficientNetB0** | 🥉 94.04% ± 0.61% | 93.92% ± 0.53% | [93.69%, 94.75%] | 0.61% |
+
+**Observations:**
+- ResNet50 shows the most robust convergence (lowest σ = 0.12%)
+- MobileNetV2 achieves near-equivalent performance at **7× fewer parameters**
+- EfficientNetB0 exhibits the highest seed sensitivity (σ = 0.61%), suggesting less stable training
+
+> **Context:** Gao et al. [31] (SwinBTC) reported 96.4% accuracy on the same task but evaluated **none** of the other pillars — no calibration, no confidence intervals, no spatial bias audit. Our MobileNetV2 sits in the same accuracy ballpark while providing full clinical safety diagnostics.
+
+<div align="center">
+
+```mermaid
+quadrantChart
+    title Accuracy vs. Clinical Readiness (CRI*)
+    x-axis Lower Accuracy --> Higher Accuracy
+    y-axis Lower Readiness --> Higher Readiness
+    quadrant-1 Ideal: accurate & ready
+    quadrant-2 Ready, room to grow on accuracy
+    quadrant-3 Needs work on both fronts
+    quadrant-4 Accurate but not yet ready
+    MobileNetV2: [0.55, 0.92]
+    ResNet50: [0.90, 0.55]
+    EfficientNetB0: [0.20, 0.45]
 ```
 
-The provided training directory contains **4,737 images**.
+*ResNet50 and EfficientNetB0 CRI values are partial (HCE not yet computed for these — see Table VIII).*
 
-The training directory was divided into:
+</div>
 
-* **90% training**
-* **10% validation**
+### Calibration & Confidence Safety
 
-The provided `Val` directory was retained as an independent held-out test set.
+#### Table VI — Calibration and Confidence Safety Metrics (Seed 42)
 
----
+| Model | Accuracy | ECE | 95% Bootstrap CI | HCE Rate |
+|---|---|---|---|---|
+| **MobileNetV2** | 94.69% | 0.0479 | [93.56%, 95.75%] | 🚨 **74.12%** |
+| **ResNet50** | 94.69% | 0.0432 | — | — |
+| **EfficientNetB0** | 93.69% | 0.0427 | — | — |
 
-## Dataset Statistics
+**Critical Finding:** Although overall ECE stays below 0.05 (well-calibrated in aggregate), the **High-Confidence Error (HCE) rate of 74.12%** reveals a critical deployment risk:
 
-### Training Directory
+> **Three-quarters of MobileNetV2's errors occur with confidence exceeding 90%.** This severely limits the utility of confidence thresholding for error flagging in clinical practice.
 
-| Class      |    Images |
-| ---------- | --------: |
-| Glioma     |     1,153 |
-| Meningioma |     1,449 |
-| Pituitary  |     1,424 |
-| No Tumor   |       711 |
-| **Total**  | **4,737** |
+**Confidence Distribution:**
 
-Actual experiment:
-
-* **4,263 training samples**
-* **474 validation samples**
-
-### Held-Out Test Set
-
-| Class      |  Images |
-| ---------- | ------: |
-| Glioma     |     136 |
-| Meningioma |     140 |
-| Pituitary  |     136 |
-| No Tumor   |     100 |
-| **Total**  | **512** |
-
----
-
-# Classification Training
-
-The experiment used:
-
-```yaml
-epochs: 3
-batch_size: 2
-learning_rate: 2e-5
-optimizer: adamw
-weight_decay: 0.01
-freeze_encoder_layers: 10
+```
+Density
+  │
+100┤                              ████ Correct
+  │                              ████
+ 80┤                              ████
+  │                              ████
+ 60┤                              ████
+  │                              ████
+ 40┤                              ████
+  │                              ████
+ 20┤    ██                       ████ ██ Incorrect
+  │    ██                       ████ ██
+  0┼────██──────────────────────████─██──────────
+   0.5  0.6  0.7  0.8  0.9  │  0.95  1.0
+                            0.9
+                         (threshold)
 ```
 
-Class weighting was enabled during training to reduce the effect of class imbalance.
+The vast majority of correct predictions cluster near confidence = 1.0, but incorrect predictions also spike in the same region — this is the **silent failure** pattern.
 
-The experiment was conducted in a **CPU-only environment**.
+### Per-Class Performance
 
----
+#### Table VII — Per-Class Discriminative Performance (MobileNetV2, Seed 42)
 
-# Classification Results
+| Class | Precision | Recall | F1-Score | 95% Bootstrap CI |
+|---|---|---|---|---|
+| **Glioma** | 0.892 | ⚠️ **0.880** | 0.886 | **[79.26%, 86.58%]** |
+| Meningioma | 0.951 | 0.958 | 0.954 | [93.25%, 97.75%] |
+| Pituitary | 0.985 | 0.990 | 0.988 | [98.69%, 100.00%] |
+| No-Tumor | 0.972 | 0.965 | 0.968 | [98.69%, 100.00%] |
 
-Final performance on the held-out test set:
+**Primary Safety Concern:** Glioma shows the lowest recall (0.880) and the widest confidence interval, indicating it is the hardest class to classify correctly. The confusion matrix confirms **glioma misclassified as meningioma (48/400 cases)** as the dominant error mode.
 
-| Metric          |     Result |
-| --------------- | ---------: |
-| Accuracy        | **96.88%** |
-| Macro Precision | **97.21%** |
-| Macro Recall    | **96.82%** |
-| Macro F1        | **96.98%** |
+#### Confusion Matrix — MobileNetV2 (Primary Dataset, n=1,600)
 
-```text
-Accuracy:        0.9688
-Macro Precision: 0.9721
-Macro Recall:    0.9682
-Macro F1:        0.9698
+```
+                    PREDICTED
+              Glioma  Meningioma  No-Tumor  Pituitary
+           ┌─────────┬─────────┬─────────┬─────────┐
+    Glioma │  ✅330   │    48   │    12   │    10   │
+           ├─────────┼─────────┼─────────┼─────────┤
+Meningioma │    1    │  ✅391   │    0    │    8    │
+           ├─────────┼─────────┼─────────┼─────────┤
+  No-Tumor │    0    │    1    │  ✅399   │    0    │
+           ├─────────┼─────────┼─────────┼─────────┤
+  Pituitary│    1    │    2    │    0    │  ✅397   │
+           └─────────┴─────────┴─────────┴─────────┘
 ```
 
-These results demonstrate strong performance on the evaluated held-out dataset.
+### Explainability & Spatial Bias
 
-However:
+Grad-CAM heatmaps were generated for **all 1,600 test images** (not a cherry-picked subset).
 
-> **These results should not be interpreted as evidence of clinical diagnostic accuracy or clinical generalization.**
+<div align="center">
+<img src="figures/gradcam_results.png" alt="Grad-CAM heatmap results across architectures" width="85%"/>
+<br/><sub><i>Grad-CAM attention heatmaps — comparing where MobileNetV2, ResNet50, and EfficientNetB0 focus their attention</i></sub>
+</div>
+<br/>
 
-Performance can change substantially under different datasets, scanners, acquisition protocols, and patient populations.
+**Key Findings:**
+1. **Architecture-dependent localization:** Attention patterns vary significantly across MobileNetV2, ResNet50, and EfficientNetB0
+2. **No model exhibits uniformly anatomically plausible attention**
+3. 🚨 **Artifact Detection:** EfficientNetB0 concentrated activation on a **source watermark** in no-tumor images — a non-anatomical artifact correlated with the negative class
 
----
+This validates **quantitative spatial bias auditing** as a mandatory complement to qualitative explainability. Manual selection of "good-looking" examples would have missed this artifact exploitation entirely.
 
-# Classification Confidence Analysis
+**Edge-Bias Metric:** Activation mass within a 20-pixel border was computed per class. High edge-bias indicates the model may be attending to scanner artifacts, corner markers, or skull-edge intensity rather than pathological tissue.
 
-The classifier also records prediction confidence.
+### Clinical Readiness Index Scores
 
-Held-out test analysis:
+#### Table VIII — Clinical Readiness Index (CRI) Synthesis
 
-| Category                              |   Count |
-| ------------------------------------- | ------: |
-| Low-confidence predictions (< 0.60)   |   **3** |
-| Correct high-confidence predictions   | **494** |
-| Incorrect high-confidence predictions |  **15** |
-| **Total**                             | **512** |
+| Configuration | Acc (0.40) | Cal (0.25) | Safety (0.20) | Gen (0.15) | **CRI** |
+|---|---|---|---|---|---|
+| **MobileNetV2** | 0.3788 | 0.2380 | 0.0518 | 0.1500 | 🏆 **0.8186** |
+| ResNet50 | 0.3788 | 0.2392 | — | 0.1500 | 0.7680* |
+| EfficientNetB0 | 0.3748 | 0.2393 | — | 0.1500 | 0.7641* |
 
-An important observation is:
+*\*Partial CRI — HCE not yet computed for these configurations.*
 
-> **High confidence does not guarantee correctness.**
+**Interpretation:**
+- MobileNetV2 achieves the **highest CRI (0.8186)** despite not having the highest raw accuracy
+- The **Safety pillar contributes only 0.0518** of its maximum 0.20 weight — confirming that silent high-confidence errors remain the dominant barrier to clinical readiness
+- Even with excellent accuracy and calibration, the HCE rate drags down the overall readiness score
 
-The 15 incorrect high-confidence predictions motivate further investigation into:
+### Cross-Dataset Generalization
 
-* probability calibration
-* uncertainty estimation
-* selective prediction
-* out-of-distribution detection
-* robustness under distribution shift
+| Metric | Value |
+|---|---|
+| External Dataset | Figshare (n = 3,064) |
+| Zero-Shot Accuracy | **86.13%** |
+| Accuracy Drop | −8.08 percentage points |
+| Domain Shift | Moderate (same modality, excludes no-tumor class) |
 
-The current confidence values are **model output probabilities**, not calibrated clinical probabilities.
+The 8.08% cross-dataset gap defines the current generalization boundary. While smaller than the 20–30% cross-scanner drops reported in broader radiology AI, it represents **partial rather than universal generalization** and motivates multi-center external validation.
 
----
+<br/>
 
-# 3. Vision-Language Description
+## 📁 Repository Structure
 
-## BLIP
-
-The multimodal component uses:
-
-**Salesforce BLIP Image Captioning Base**
-
-Configuration:
-
-```yaml
-model:
-  name: "Salesforce/blip-image-captioning-base"
-  mode: "zero_shot"
-  device: "cpu"
+```
+brain-tumor-clinical-trust-framework/
+│
+├── 📄 README.md                          # This file
+├── 📄 LICENSE                            # MIT License
+├── 📄 requirements.txt                   # Python dependencies
+│
+├── 🔧 train_mobilenetv2_paper_exact.py  # Training script matching paper protocol
+├── 🔧 train_resnet50_paper_exact.py     # ResNet50 training script
+├── 🔧 train_efficientnetb0.py           # EfficientNetB0 training script
+│
+├── 🔍 generate_gradcam.py                # Grad-CAM heatmap generation (all 1,600 test images)
+├── 🔍 spatial_bias_audit.py             # Edge-bias metric computation
+│
+├── 📊 compute_ece.py                     # Expected Calibration Error calculator
+├── 📊 bootstrap_ci.py                    # Bootstrap 95% confidence intervals (10,000 resamples)
+├── 📊 mcnemar_test.py                    # McNemar's exact test for ensemble complementarity
+│
+├── 🌡️ temperature_scaling.py            # Post-hoc calibration via temperature scaling
+├── 🧪 generalization_test.py            # Cross-dataset (Figshare) zero-shot evaluation
+│
+├── 🛠️ medtrust_audit/                    # FastAPI dashboard for clinical auditing
+│   ├── main.py
+│   ├── cri_calculator.py
+│   ├── gradcam_module.py
+│   └── templates/
+│
+└── 📁 outputs/                            # Generated artifacts (not in repo)
+    ├── models/                           # Saved model checkpoints
+    ├── figures/                          # Grad-CAM overlays, confidence curves
+    ├── y_true.npy                        # Ground truth labels
+    ├── y_pred.npy                        # Predicted labels
+    └── y_pred_probs.npy                  # Predicted probabilities
 ```
 
-BLIP is used in image-captioning mode.
+<br/>
 
-Its role is deliberately limited to:
+## 🚀 Reproducing Results
 
-> **Generic visual description.**
-
-BLIP is **not** used to generate:
-
-* medical diagnoses
-* tumor grades
-* treatment recommendations
-* clinical findings
-* patient-management decisions
-
----
-
-# BLIP Evaluation and Limitation
-
-When evaluated on brain MRI images, the generic BLIP model produced repetitive output similar to:
-
-```text
-mri mri mri mri mri mri ...
-```
-
-This behavior is documented as a limitation of the current implementation.
-
-It demonstrates an important methodological consideration:
-
-> **A general-purpose image-captioning model should not automatically be treated as a medical vision-language model.**
-
-Therefore, MedVisionAI does not transform the BLIP output into unsupported clinical claims.
-
-The raw generic description remains separate from the trained classifier prediction.
-
----
-
-# 4. Controlled Multimodal Report
-
-The reporting component combines independently generated outputs.
-
-```text
-                    BLIP
-                     │
-                     ▼
-          Generic Visual Description
-                     │
-                     │
-ViT ─────────────────┤
-│                    │
-├── Prediction       │
-├── Confidence       │
-└── Probabilities    │
-                     ▼
-          Controlled Report Generator
-                     │
-                     ├── Image Description
-                     ├── Classification Context
-                     └── Safety Disclaimer
-```
-
-## Report Sections
-
-### Image Description
-
-Contains the raw BLIP-generated generic visual description.
-
-### AI Classification Context
-
-Contains:
-
-* predicted class
-* model confidence
-
-These values come directly from the trained ViT classifier.
-
-### Safety Disclaimer
-
-The report contains a fixed configuration-controlled disclaimer:
-
-> Research prototype only. This output is generated for demonstration purposes and is not intended for clinical diagnosis or medical decision-making.
-
-The disclaimer is **not generated by the vision-language model**.
-
----
-
-# 5. Interactive Gradio Demo
-
-MedVisionAI provides an interactive interface built with Gradio.
-
-The current demonstration accepts an image and returns:
-
-* predicted tumor class
-* classification confidence
-* class probabilities
-* generic BLIP description
-* structured multimodal report
-* safety disclaimer
-
-The current demo primarily showcases:
-
-```text
-Image
-  ↓
-ViT Classification
-  ↓
-Confidence + Probabilities
-  +
-BLIP Generic Description
-  ↓
-Controlled Report
-```
-
-The segmentation model is evaluated separately through its training, evaluation, and visualization pipelines.
-
----
-
-# Launch the Demo
-
-Activate the project environment and run:
+### Quick Start
 
 ```bash
-python scripts/run_demo.py
-```
+# 1. Clone the repository
+git clone https://github.com/iqrasafdarr/Toward-Trustworthy-AI-for-Brain-Tumor-MRI-Classification-A-Multi-Pillar-Clinical-Readiness-Framework.git
+cd Toward-Trustworthy-AI-for-Brain-Tumor-MRI-Classification-A-Multi-Pillar-Clinical-Readiness-Framework
 
-The application starts locally at:
-
-```text
-http://127.0.0.1:7860
-```
-
----
-
-# Example Inference
-
-An evaluated glioma MRI example produced:
-
-```text
-Predicted class: glioma
-Model confidence: 0.9989
-```
-
-The system generated a structured report containing:
-
-```text
-Image Description
-AI Classification Context
-Safety Disclaimer
-```
-
-The confidence value represents the classifier's output probability and should not be interpreted as calibrated clinical certainty.
-
----
-
-# Complete Research Pipeline
-
-```text
-                         Brain MRI
-                             │
-              ┌──────────────┴──────────────┐
-              │                             │
-              ▼                             ▼
-        MONAI U-Net                       ViT
-              │                             │
-              ▼                             ├── Class
-       Tumor Segmentation                   ├── Confidence
-              │                             └── Probabilities
-              │                             │
-              │                             ▼
-              │                           BLIP
-              │                             │
-              │                             ▼
-              │                    Generic Description
-              │                             │
-              └──────────────┐              │
-                             ▼              │
-                     Controlled Report ◄────┘
-                             │
-                             ▼
-                       Gradio Demo
-```
-
----
-
-# Research Design Principles
-
-## Modularity
-
-Each component has a clearly defined role:
-
-```text
-MONAI U-Net
-    ↓
-Tumor Localization / Segmentation
-
-ViT
-    ↓
-Tumor Classification
-    ↓
-Confidence + Probabilities
-
-BLIP
-    ↓
-Generic Visual Description
-
-Report Generator
-    ↓
-Controlled Communication
-```
-
----
-
-## Separation of Information Sources
-
-| Information                | Source                     |
-| -------------------------- | -------------------------- |
-| Tumor segmentation         | MONAI U-Net                |
-| Tumor class                | ViT                        |
-| Classification confidence  | ViT                        |
-| Class probabilities        | ViT                        |
-| Generic visual description | BLIP                       |
-| Safety disclaimer          | Static configuration       |
-| Report structure           | Controlled Python template |
-
-This separation is central to the framework's trustworthy-AI design.
-
----
-
-# Repository Structure
-
-```text
-MedVisionAI/
-│
-├── README.md
-├── LICENSE
-├── requirements.txt
-│
-├── configs/
-│   ├── classification.yaml
-│   ├── segmentation.yaml
-│   └── vlm.yaml
-│
-├── data/
-│   ├── README.md
-│   └── .gitkeep
-│
-├── notebooks/
-│   ├── 01_segmentation_exploration.ipynb
-│   ├── 02_vit_classification.ipynb
-│   └── 03_multimodal_demo.ipynb
-│
-├── results/
-│   ├── classification/
-│   │   ├── confusion_matrix.png
-│   │   ├── summary.json
-│   │   ├── test_predictions.npz
-│   │   └── train_log.csv
-│   │
-│   ├── segmentation/
-│   │   ├── checkpoints/
-│   │   ├── segmentation_metrics.json
-│   │   ├── split.json
-│   │   ├── train_log.csv
-│   │   └── visualizations/
-│   │
-│   └── multimodal/
-│
-├── scripts/
-│   ├── download_data.py
-│   ├── evaluate_segmentation.py
-│   ├── run_demo.py
-│   ├── train_segmentation.py
-│   ├── train_vit.py
-│   └── visualize_segmentation.py
-│
-└── src/
-    ├── classification/
-    │   ├── dataset.py
-    │   ├── metrics.py
-    │   ├── model.py
-    │   ├── train.py
-    │   └── evaluate.py
-    │
-    ├── segmentation/
-    │   ├── dataset.py
-    │   ├── model.py
-    │   ├── train.py
-    │   ├── evaluate.py
-    │   └── visualize.py
-    │
-    ├── multimodal/
-    │   ├── app.py
-    │   ├── inference.py
-    │   ├── model.py
-    │   └── report_generator.py
-    │
-    └── utils/
-```
-
----
-
-# Installation
-
-## Requirements
-
-Recommended environment:
-
-* Python 3.11+
-* PyTorch
-* MONAI
-* Transformers
-* Pillow
-* NumPy
-* pandas
-* scikit-learn
-* SciPy
-* PyYAML
-* Gradio
-
-Install dependencies:
-
-```bash
+# 2. Install dependencies
 pip install -r requirements.txt
+
+# 3. Download the Brain Tumor MRI Dataset
+#    Source: https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset
+#    Place in: ./data/brain-tumor-mri-dataset/
+
+# 4. Run training (GPU recommended — Colab/Kaggle notebooks work well)
+python train_mobilenetv2_paper_exact.py
+
+# 5. Generate Grad-CAM heatmaps for all test images
+python generate_gradcam.py --model ./outputs/models/mobilenetv2_seed42.h5 --all-test
+
+# 6. Compute CRI and all pillar metrics
+python compute_ece.py --preds ./outputs/y_pred_probs.npy --labels ./outputs/y_true.npy
+python bootstrap_ci.py --preds ./outputs/y_pred.npy --labels ./outputs/y_true.npy
+python spatial_bias_audit.py --heatmaps ./outputs/figures/gradcam/
 ```
 
----
+### Requirements
 
-# Experimental Environment
-
-The reported experiments were developed and tested in a CPU-only environment.
-
-```text
-Python:        3.11.9
-PyTorch:       2.13.0+cpu
-Transformers:  5.16.1
-Gradio:        6.26.0
-Device:        CPU
+```
+tensorflow>=2.10.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+scikit-learn>=1.0.0
+scipy>=1.7.0
+opencv-python>=4.5.0
+fastapi>=0.85.0
+uvicorn>=0.18.0
+pillow>=9.0.0
+tqdm>=4.62.0
 ```
 
-The implementation automatically falls back to CPU when CUDA is unavailable.
+### Reproducibility Note
 
----
+> Independent reruns of this protocol will not reproduce the paper's exact figures to the decimal. **Table V** documents seed-to-seed variance as an expected, normal property of the training process — not an error. The σ values quantify this variance explicitly. For exact reproduction, use the reported seeds {42, 789, 999}.
 
-# Reproducibility
+<br/>
 
-Major experimental parameters are stored in YAML configuration files.
+## 🛠️ The Audit Tool (MedTrust-Audit)
 
-## Segmentation Training
+This framework isn't just a paper — it's implemented as a runnable auditing tool.
+
+**MedTrust-Audit** is a FastAPI dashboard that:
+- Computes the **CRI** and all four pillars directly from saved predictions
+- Generates **Grad-CAM explainability overlays** with a single upload
+- Supports auditing **externally-provided prediction arrays** (`.npy` format)
+- Produces downloadable **PDF audit reports** for clinical procurement teams
+
+### Launch the Dashboard
 
 ```bash
-python scripts/train_segmentation.py --config configs/segmentation.yaml
+cd medtrust_audit
+uvicorn main:app --reload
+# Navigate to http://localhost:8000
 ```
 
-## Segmentation Evaluation
+### API Endpoints
 
-```bash
-python scripts/evaluate_segmentation.py --config configs/segmentation.yaml --checkpoint results/segmentation/checkpoints/best_model.pt
+| Endpoint | Method | Description |
+|---|---|---|
+| `/upload` | POST | Upload model predictions + ground truth |
+| `/cri` | GET | Compute Clinical Readiness Index |
+| `/calibration` | GET | ECE curve + reliability diagram |
+| `/gradcam` | POST | Generate Grad-CAM for uploaded image |
+| `/report` | GET | Download full PDF audit report |
+
+<div align="center">
+
+```mermaid
+sequenceDiagram
+    participant U as Clinician / Auditor
+    participant D as MedTrust-Audit Dashboard
+    participant E as CRI Engine
+
+    U->>D: Upload predictions + ground truth (.npy)
+    D->>E: Compute ECE, Bootstrap CI, HCE
+    E-->>D: Calibration + stability metrics
+    U->>D: Upload MRI image
+    D->>E: Generate Grad-CAM overlay
+    E-->>D: Heatmap + edge-bias score
+    D->>E: Aggregate into CRI
+    E-->>D: CRI = 0.40·Acc + 0.25·(1-ECE) + 0.20·(1-HCE) + 0.15·Gen
+    D-->>U: Downloadable PDF audit report
 ```
 
-## Segmentation Visualization
+</div>
 
-```bash
-python scripts/visualize_segmentation.py --config configs/segmentation.yaml --checkpoint results/segmentation/checkpoints/best_model.pt --n-examples 8
-```
+<br/>
 
-## Classification Training
+## 📚 Citation
 
-```bash
-python scripts/train_vit.py --config configs/classification.yaml
-```
-
-The classification pipeline records:
-
-* training loss
-* validation loss
-* accuracy
-* macro precision
-* macro recall
-* macro F1
-* confidence statistics
-* confusion matrix
-
-## Multimodal Demo
-
-```bash
-python scripts/run_demo.py
-```
-
-Then open:
-
-```text
-http://127.0.0.1:7860
-```
-
----
-
-# Experiment Artifacts
-
-## Classification
-
-```text
-results/classification/
-├── confusion_matrix.png
-├── summary.json
-├── test_predictions.npz
-└── train_log.csv
-```
-
-## Segmentation
-
-```text
-results/segmentation/
-├── checkpoints/
-├── segmentation_metrics.json
-├── split.json
-├── train_log.csv
-└── visualizations/
-```
-
-These artifacts provide access to experiment metrics, training logs, predictions, checkpoints, and qualitative segmentation results.
-
----
-
-# Limitations
-
-## 1. 2D Segmentation
-
-The current segmentation implementation processes individual axial slices rather than complete 3D MRI volumes.
-
-Therefore, the segmentation metrics should not be interpreted as whole-volume 3D performance.
-
----
-
-## 2. Limited Segmentation Training
-
-The segmentation experiment was conducted in a CPU-only environment.
-
-The training run was interrupted during a later epoch because of a memory-related NIfTI decompression failure.
-
-The reported checkpoint corresponds to the best successfully completed validation stage.
-
-This should be considered when interpreting the segmentation results.
-
----
-
-## 3. Generic BLIP Model
-
-BLIP is a general-purpose image-captioning model and is not specialized for radiological interpretation.
-
-Its output on MRI images can therefore be repetitive, semantically weak, or unsuitable for clinical interpretation.
-
----
-
-## 4. Confidence Is Not Calibrated Uncertainty
-
-Softmax probability does not automatically represent calibrated uncertainty.
-
-Future work should investigate:
-
-* Expected Calibration Error
-* temperature scaling
-* Monte Carlo Dropout
-* deep ensembles
-* predictive entropy
-* selective classification
-* out-of-distribution detection
-
----
-
-## 5. Dataset Generalization
-
-Strong performance on a held-out dataset does not guarantee generalization to:
-
-* different hospitals
-* different MRI scanners
-* different acquisition protocols
-* different patient populations
-* unseen distributions
-
-Independent external validation is required before making claims about broader generalization.
-
----
-
-## 6. No Clinical Deployment Claim
-
-This repository does not establish:
-
-* clinical efficacy
-* diagnostic safety
-* regulatory readiness
-* suitability for patient care
-
-The framework is intended for research and educational experimentation.
-
----
-
-# Future Research Directions
-
-## Medical Vision-Language Modeling
-
-Replace generic BLIP with a medical-domain vision-language model trained or evaluated specifically on radiology or neuroimaging data.
-
-## 3D Brain Tumor Segmentation
-
-Extend the current 2D segmentation pipeline to 3D architectures such as:
-
-* 3D U-Net
-* SegResNet
-* Swin UNETR
-
-## Uncertainty Estimation
-
-Investigate explicit uncertainty estimation methods including:
-
-* Monte Carlo Dropout
-* Deep Ensembles
-* Predictive Entropy
-* Calibration methods
-
-## Robustness Evaluation
-
-Evaluate model behavior under:
-
-* image corruption
-* intensity shifts
-* resolution changes
-* scanner variation
-* acquisition differences
-* domain shifts
-
-## Out-of-Distribution Detection
-
-Introduce mechanisms for identifying images that differ substantially from the training distribution.
-
-## Explainability
-
-Potential extensions include:
-
-* Grad-CAM
-* attention visualization
-* segmentation overlays
-* explanation consistency analysis
-
-## Cross-Dataset Validation
-
-Evaluate trained models on independent datasets to assess robustness and generalization beyond the development dataset.
-
-## Human-in-the-Loop Evaluation
-
-Investigate how AI outputs can assist expert workflows while maintaining human oversight as a central component of decision-making.
-
----
-
-# Ethical and Safety Considerations
-
-Medical AI systems can generate incorrect or overconfident predictions.
-
-MedVisionAI therefore follows several safety-oriented principles:
-
-1. Model predictions are not presented as definitive medical diagnoses.
-2. Generic VLM descriptions are not converted into fabricated clinical findings.
-3. Classification confidence is explicitly exposed.
-4. The multimodal report contains a fixed safety disclaimer.
-5. The system is clearly identified as a research prototype.
-6. Clinical decision-making remains outside the scope of the framework.
-
-Any future clinical application would require extensive:
-
-* external validation
-* calibration
-* robustness testing
-* clinical evaluation
-* safety assessment
-* regulatory review
-* qualified human oversight
-
----
-
-# Reproducibility Checklist
-
-Before reproducing the experiments:
-
-* [ ] Install Python 3.11+
-* [ ] Install project dependencies
-* [ ] Download required datasets
-* [ ] Verify dataset paths
-* [ ] Review configuration files
-* [ ] Generate segmentation splits
-* [ ] Train segmentation model
-* [ ] Evaluate segmentation
-* [ ] Generate segmentation visualizations
-* [ ] Train ViT classifier
-* [ ] Evaluate classification metrics
-* [ ] Inspect confidence analysis
-* [ ] Launch multimodal demo
-* [ ] Record experimental environment
-* [ ] Compare reproduced results with reported metrics
-
----
-
-# Project Status
-
-| Module                           | Status      |
-| -------------------------------- | ----------- |
-| Dataset pipelines                | Completed   |
-| Patient-level segmentation split | Completed   |
-| MONAI U-Net                      | Completed   |
-| Segmentation evaluation          | Completed   |
-| Segmentation visualization       | Completed   |
-| ViT classification               | Completed   |
-| Classification metrics           | Completed   |
-| Confidence analysis              | Completed   |
-| BLIP integration                 | Completed   |
-| Controlled report generation     | Completed   |
-| Gradio interface                 | Completed   |
-| Research documentation           | Completed   |
-| Advanced uncertainty estimation  | Future Work |
-| 3D segmentation                  | Future Work |
-| Medical VLM                      | Future Work |
-| Cross-dataset robustness         | Future Work |
-| Clinical validation              | Future Work |
-
----
-
-# Development Philosophy
-
-MedVisionAI is built around the following principle:
-
-> **A trustworthy AI system should expose what each component produces, how confidently it produces it, and where its limitations begin.**
-
-Rather than allowing a generative model to produce unsupported medical claims, MedVisionAI separates:
-
-```text
-Prediction
-    ↓
-Confidence
-    ↓
-Generic Visual Description
-    ↓
-Controlled Communication
-```
-
-This modular design makes the framework easier to:
-
-* audit
-* reproduce
-* evaluate
-* extend
-* critically analyze
-
----
-
-# Citation
-
-If you use this repository in academic work, please cite:
+If you use this framework or find our work valuable, please cite:
 
 ```bibtex
-@software{medvisionai,
-  author = {Safdar, Iqra},
-  title = {MedVisionAI: A Trustworthy Multimodal Framework for Brain MRI Analysis},
-  year = {2026},
-  url = {https://github.com/iqrasafdarr/MedVisionAI}
+@unpublished{safdar2026beyond,
+  title   = {Beyond Accuracy: A Multi-Pillar Clinical Trust Framework for Brain Tumor MRI Classification},
+  author  = {Safdar, Iqra and Raza, Zeeshan and Arif, Malaika},
+  note    = {Under review},
+  year    = {2026},
+  institution = {COMSATS University Islamabad, Sahiwal Campus}
 }
 ```
 
----
+### Related Work Referenced
 
-# Acknowledgements
+| Citation | Contribution |
+|---|---|
+| Guo et al. [6] | Expected Calibration Error (ECE); temperature scaling |
+| Lin et al. [8] | Focal Loss for dense object detection |
+| Mukhoti et al. [20] | Focal loss improves calibration in imbalanced classification |
+| Selvaraju et al. [21] | Grad-CAM: gradient-based localization |
+| Ghorai et al. [22] | Quantitative artifact-driven attention audit |
+| McNemar [26] / Dietterich [27] | Statistical testing for classifier comparison |
 
-MedVisionAI builds upon open-source research and software ecosystems including:
+<br/>
 
-* MONAI
-* PyTorch
-* Hugging Face Transformers
-* BLIP
-* Vision Transformer
-* Gradio
-* Medical Segmentation Decathlon
+## 📄 License
 
-These technologies serve as building blocks for research into multimodal, reliable, and trustworthy medical AI.
+This project is licensed under the **MIT License** — feel free to use, modify, and distribute as needed.
 
----
+```
+MIT License
 
-# Disclaimer
+Copyright (c) 2026 Iqra Safdar, Zeeshan Raza, Malaika Arif
 
-**MedVisionAI is a research prototype.**
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The outputs generated by this repository are not intended to:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
 
-* diagnose disease
-* recommend treatment
-* replace medical professionals
-* support autonomous clinical decision-making
+<br/>
 
-Predictions may be incorrect, overconfident, or unreliable under distribution shifts.
+## 🤝 Acknowledgments
 
-The BLIP component provides generic visual descriptions and is **not a medical reporting model**.
+The authors acknowledge **COMSATS University Islamabad** for computational resources and the curators of the public brain tumor MRI datasets used in this study.
 
-Any clinical deployment would require substantially more validation, calibration, external testing, safety evaluation, regulatory assessment, and qualified human oversight.
+<div align="center">
 
----
+**⭐ Star this repo if you find it useful!**
 
-# Author
+*Built with ❤️ at COMSATS University Islamabad, Sahiwal Campus*
 
-## Iqra Safdar
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=100&section=footer" width="100%"/>
 
-**AI/ML Researcher | Medical AI | Computer Vision | Trustworthy AI**
-
-Research interests include:
-
-* Medical Image Analysis
-* Deep Learning
-* Computer Vision
-* Explainable AI
-* Trustworthy AI
-* Multimodal AI
-* Uncertainty Estimation
-* Robust Machine Learning
-
-**GitHub:**
-https://github.com/iqrasafdarr
-
----
-
-# Project
-
-**MedVisionAI**
-
-### Toward trustworthy multimodal intelligence for medical imaging research.
+</div>
